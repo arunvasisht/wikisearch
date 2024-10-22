@@ -1,1 +1,6 @@
 streamlit
+boto3
+python-dotenv
+pandas
+os
+requests

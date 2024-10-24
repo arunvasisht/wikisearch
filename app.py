@@ -3,6 +3,8 @@ import requests
 from dotenv import load_dotenv
 import os
 import pandas as pd
+import boto3
+from io import BytesIO
 
 load_dotenv()
 
@@ -11,10 +13,12 @@ AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
 SEARCH_ENGINE_ID = os.environ["SEARCH_ENGINE_ID"]
 
+s3 = boto3.client("s3")
+
 # API endpoint
 url = 'https://www.googleapis.com/customsearch/v1'
 
-st.title("My Wiki Search")
+st.title("Data Scraper")
 if search_keywords := st.text_input("Search Keyword(s)"):
 
     # Parameters
@@ -22,6 +26,7 @@ if search_keywords := st.text_input("Search Keyword(s)"):
         'key': SEARCH_API_KEY,
         'cx': SEARCH_ENGINE_ID,
         'q': search_keywords,
+        'fileType':'pdf'
     }
     with st.spinner("Searching..."):
         # Send the request
@@ -59,7 +64,19 @@ if search_keywords := st.text_input("Search Keyword(s)"):
         )
 
         if st.button("Download",help="To scrape selected websites"):
-            st.write(len(edited_data[edited_data["selected"] == True]))
+            selected_links = edited_data[edited_data["selected"] == True]
+            with st.spinner(f"Downloading {len(selected_links)} files"):
+                selected_urls = selected_links.urls.to_list()
+                for url in selected_urls:
+                    response = requests.get(url)
+                    if response.status_code == 200:
+                        content = BytesIO(response.content)
+                        filename = os.path.basename(url)
+                        bucket = "bucket-wikisearch"
+                        s3.put_object(Bucket=bucket,Body=content,Key=filename)
+            st.success("Files uploaded successfully!", icon="✅")
+                    
+
     else:
         st.error('Error!', icon="🚨")
 

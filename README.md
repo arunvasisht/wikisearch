@@ -1,6 +1,6 @@
-# Wiki Search
+# Research Assistant
 
 <b>Project Overview:</b>
-1. Search for a keyword on the Wikipedia.
-2. Download articles.
+1. Search for a keyword for research.
+2. Review and download articles.
 3. Query the downloaded data.
